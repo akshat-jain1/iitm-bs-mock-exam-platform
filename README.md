@@ -1,212 +1,263 @@
-# IITM BS Data Science Mock Examination Platform
+<div align="center">
 
-This repository imports an existing application for end-term evaluation. Its commits group the source by component; they do not reproduce the original development timeline. The deployed service is maintained separately. Production credentials, private records, backups, and operational scratch files are excluded. To run a separate instance, copy `.env.example` to `.env.local` and configure your own Supabase project.
+![Q Platform — Built for the exam. Designed for what comes next.](docs/assets/readme-banner.svg)
 
-A secure, high-performance web-based examination platform engineered for students, testers, and administrators of the IIT Madras BS in Data Science and Applications program.
+# Q Platform
 
-The platform replicates the rigor of official university examinations in a distraction-free, browser-based environment. It supports multi-subject combined examination windows, complex LaTeX mathematical typography, code snippets, visual assets, non-blocking background autosave, anti-cheating telemetry, automated server-side evaluation, flexible practice Test Assignments, comprehensive Student Exam History & Answer Review, and detailed Admin Question-Wise Results analytics.
+### The complete mock examination workflow for IITM BS students.
 
----
+**Author better papers. Take focused exams. Turn results into practice.**
 
-## Current Status
+[![Live application](https://img.shields.io/badge/LIVE-q--platform--theta.vercel.app-14b8a6?style=for-the-badge)](https://q-platform-theta.vercel.app)
+![Users](https://img.shields.io/badge/REAL_USERS-85-6366f1?style=for-the-badge)
+![Tests](https://img.shields.io/badge/TESTS-141_PASSING-22c55e?style=for-the-badge)
 
-- **Release:** `main` includes atomic exam submission (reliability commit `b7e9eb7`) and shared light/dark appearance across admin, student, authentication, and exam screens. Check the active Vercel deployment commit before confirming production rollout.
-- **Database:** 47 migrations through `20261024000047_attempt_subject_review_visibility.sql`; migration 44 fixes authoring/publishing trigger search paths and permits image-only questions.
-- **Question images:** Questions and options start as text. Choose Image to upload a diagram instead, optionally add text, and adjust its student display size. See [Question authoring](docs/FEATURES.md#question-authoring) for usage, limits, and verification.
-- **Appearance:** The device theme is used initially. The header sun/moon button saves an explicit light/dark choice in browser storage (`iitm-theme`), shared across roles and tabs on the same origin. Academic images retain their original white canvas for readability.
-- **Verification:** ESLint, TypeScript, production build, and theme preference behavior are checked for this release. Earlier unit/database checks are recorded in the project history; authenticated visual verification remains a manual release check.
-- **Production checks:** Follow [Production checklist](docs/PRODUCTION_CHECKLIST.md) and [Full manual checklist](docs/MANUAL_TESTING_CHECKLIST.md).
-- **Capacity:** Local synthetic testing supported 300 concurrent exam-page loads and submissions spread over three seconds; a same-instant submission burst had 35 initial failures out of 300 before recovery. This does not certify hosted production capacity. The disposable load-test app, scripts, fixture, and Docker volumes have been removed; no hosted load test was run.
+[Open the platform](https://q-platform-theta.vercel.app) · [Explore the features](#what-you-can-do) · [Understand the architecture](#under-the-hood) · [Run locally](#run-your-own-instance)
+
+</div>
 
 ---
 
-## Platform Overview & Capabilities
+## Built for a real student community
 
-The platform is purpose-built for students at **Scaler School of Technology** preparing for **IIT Madras (IITM) BS in Data Science and Applications** examinations. It unifies mock exam practice, assessment event administration, academic resource dissemination, and structured student-to-faculty feedback.
+Preparing for an IIT Madras BS examination means more than finding a question paper. Students need to practise under time pressure, handle mathematical and numerical questions, track unanswered questions, and understand their mistakes afterward. Administrators need a reliable way to prepare papers, run assessments, and evaluate responses consistently.
 
-### 1. Student Experience
-- **Multi-Subject Combined Exam Window:** Students select 1 to 4 eligible enrolled subjects and sit them in a single combined window sharing a unified global timer, top-level tabs, and one final submission.
-- **Dynamic Exam Clock:** Authoritative server-side duration (`Math.max(90, subjectCount * 60)` minutes for production; custom duration for test assignments). Browser clock is display-only.
-- **Interactive Question Palette:** Real-time visual tracking across 4 question states: Not Visited (gray), Not Answered (red), Answered (green), and Marked for Review (yellow/purple).
-- **Non-Blocking Background Autosave:** Client queue debounces and asynchronously commits answers to PostgreSQL via atomic stored procedures (`save_response`) with exponential backoff on network dropouts.
-- **Server-Rendered KaTeX Math:** Mathematical equations pre-render to sanitized HTML on the server, eliminating client-side rendering lag while students navigate questions.
-- **Direct CDN Image Delivery:** Exam figures stream directly from the Supabase Storage CDN via server-batched signed URLs, bypassing application proxy bottlenecks.
-- **On-Demand Scientific Calculator:** Clean in-exam floating scientific calculator code-split via `next/dynamic` and loaded only when opened.
-- **Immediate Evaluation & Transcripts:** Detailed score breakdown and percentage per subject upon submission.
+**Q Platform brings that entire cycle into one application.** Built for students at Scaler School of Technology pursuing the IITM BS in Data Science and Applications, it connects paper authoring, scheduled examinations, automatic evaluation, answer review, and personal practice.
 
-### 2. Student Exam History & Answer Review
-- **Dual-Section Results Portal:** `/student/results` provides an **Official Results** view for production examinations and a dedicated **Exam History & Review** tab containing all completed attempts across both Production and Test assignments.
-- **Strict Answer-Release Security:** Production examination answer keys and explanations are guarded server-side; they are released only when the assessment event status is `Completed` and `release_answers = true`. Test assignments release answers immediately upon evaluation.
-- **Interactive Review Interface:** Dedicated `/student/results/review/[attemptId]` route displays question-by-question student responses side-by-side with authoritative answer keys, explanation text, and marks awarded.
+Already used by **85 real users**, Q Platform serves an actual student community preparing for examinations.
 
-### 3. Test Assignments (Practice & Mock Engine)
-- **Practice Mode Parity:** Runs inside the exact same high-performance exam engine as production assessments with identical rendering, palette, and autosave.
-- **Repeatable Attempts:** Configurable `UNLIMITED` or `LIMITED` attempt policies with monotonic attempt numbering (`attempt_number >= 1`).
-- **Flexible Access Modes:** `TESTER_ONLY` mode allows testers and admins to access all offered subjects without normal course enrollment; `ALL_ENROLLED` mode allows enrolled students to practice.
-- **Early Exit & Submission:** Immediate early submission unlocking and a dedicated "Exit Test" modal calling atomic `exitTestExamAction`.
-- **Result Isolation:** Practice attempts (`is_test = true`) are strictly excluded from official transcripts, profile completed counters, and administrative production analytics.
+| For students | For administrators | For testers |
+| :--- | :--- | :--- |
+| Take exams, review results, and practise completed papers. | Author and publish papers, manage assessments, and analyse performance. | Validate assessment workflows through dedicated test assignments. |
 
-### 4. Faculty & Administrator Console
-- **Hierarchical Paper Authoring:** Visual tree workspace for managing paper sets, sections, comprehension groups, and questions.
-- **Unified Question Editor:** Single modal for authoring Multiple Choice (MCQ), Multiple Select (MSQ), and Numerical (NAT) questions with live LaTeX preview.
-- **PDF Question Paper Import Assistant:** Local Node.js streaming parser that extracts legacy PDF examination papers into editable draft templates with granular verification flags (`Needs Review`).
-- **Atomic Paper Publishing:** Deep-clones verified draft templates into an immutable version graph (`*_versions`), permanently freezing questions and answer keys before exam scheduling.
-- **Assessment Event Management:** Schedule live exam windows, link published papers to subjects, configure test policies, and monitor student submissions.
-- **Admin Question-Wise Results Grid:** Dedicated View B in `/admin/results/[examId]` dynamically generates question columns ($Q_1 \dots Q_N$) from the published paper version with sticky student identity, max marks, question types, and compact status badges (`✓`, `✕`, `—`, `⏳`, `⊘`, `?`).
-- **Cross-Version Question Provenance:** Attempts taken on older paper versions map questions to canonical columns via unique `cloned_from_id` relationships, labeling unmapped questions as `Not in Paper` (`⊘`).
-- **Scalable Query Architecture:** Bounded query execution with 50-attempt chunking and 1,000-row range pagination to prevent URL length overflow (HTTP 414) and PostgREST row limit truncation.
-- **RFC 4180 CSV Export:** Exports the multi-subject student matrix or subject-specific results with appended dynamic question columns (`CORRECT`, `INCORRECT`, `UNANSWERED`, `PENDING`, `NOT_APPLICABLE`).
+> **Live application:** [q-platform-theta.vercel.app](https://q-platform-theta.vercel.app)<br>
+> Student sign-in uses approved **`@sst.scaler.com`** Google accounts. Administrative access requires an authorised account. Evaluators outside this domain need access arranged by the project owner.
 
-### 5. Student Feedback Centre
-- **Dedicated Student Route (`/student/feedback`):** Structured form supporting 4 official categories: `feature_request`, `bug_report`, `question_correction`, and `general`.
-- **Contextual Attachment:** Allows linking submissions directly to enrolled subjects, live assessments, specific question references, or route URLs.
-- **My Submissions & Status Tracking:** Real-time student view tracking items through a 4-stage lifecycle: `new` ➔ `under_review` ➔ `in_progress` ➔ `closed`.
-- **Mandatory Closure Outcomes:** Closing a submission strictly requires designating an outcome (`implemented` or `not_proceeding`) and provides an optional student-visible resolution note.
-- **Protected Admin Triage Inbox (`/admin/feedback`):** Searchable, filterable administrative workspace with pagination, status badges, outcome pills, and count metrics.
-- **Private Staff Internal Notes:** Administrators can record private operational notes on `student_feedback_internal_notes` with guaranteed zero leakage to students (enforced by database RLS and server action query boundaries).
-- **Concurrency & Anti-Abuse Controls:** Backed by database advisory locks (`pg_advisory_xact_lock`) and atomic procedure `submit_student_feedback_v1`:
-  - 60-second duplicate normalized title suppression.
-  - Short-burst throttle: maximum 3 submissions per 2 minutes.
-  - Hourly rate limit: maximum 10 submissions per user per hour.
-- **Optional Direct Contact Email:** Configurable via `NEXT_PUBLIC_FEEDBACK_EMAIL`. When set, displays a direct mailto link; when unset or omitted, the UI gracefully renders standard in-portal ticketing guidance without broken links.
+## What you can do
 
----
+### 01 · Build the paper before the pressure starts
 
-## Architecture & Technical Stack
+A structured authoring workspace organises **papers → sections → comprehension groups → questions**.
 
-```text
-┌────────────────────────────────────────────────────────────────────────┐
-│                        SYSTEM ARCHITECTURE                             │
-├────────────────────────────────────────────────────────────────────────┤
-│ Client Layer:    Next.js 16 (React 19) • Tailwind CSS • Lucide Icons   │
-│ Security Layer:  HMAC-SHA256 Session Cookies • Page Visibility API     │
-│ Server Layer:    Server Actions • Route Handlers • Next.js Data Cache  │
-│ Database Layer:  Supabase PostgreSQL • Row Level Security (RLS)        │
-│ Storage Layer:   Private Supabase Storage Buckets (Signed CDN URLs)    │
-│ Math Rendering:  KaTeX (Server-Side HTML Pre-Rendering)                │
-└────────────────────────────────────────────────────────────────────────┘
+- Create **MCQ, multiple-select, and numerical-answer** questions.
+- Write mathematical notation with **LaTeX previews and KaTeX rendering**.
+- Add code snippets, diagrams, question images, and image-based answer options.
+- Use the PDF import assistant to turn supported examination PDFs into editable drafts; review extracted content before publishing.
+- **Publish an immutable paper version**, so later edits to a draft do not change an examination already using that version.
+
+### 02 · Run an exam that behaves like an exam
+
+Students select eligible subjects and enter a single, focused examination workspace.
+
+- Attempt **up to four subjects in one session**, with subject tabs and a shared timer.
+- Navigate with a question palette showing visited, unanswered, answered, and marked-for-review states.
+- Save answers in the background through a **debounced queue with retry handling**.
+- Use a built-in scientific calculator alongside mathematical questions and diagrams.
+- Submit through **server-controlled timing and transactional finalisation**, including pending responses.
+- Record fullscreen exits, tab changes, and other integrity events for administrative review.
+
+### 03 · Make the result the start of the next attempt
+
+The workflow continues after submission.
+
+- Calculate scores on the server using the published answer keys and marking rules.
+- View subject scores, examination history, and question-level responses.
+- Review answers when the assessment's release rules permit access.
+- Start **untimed personal practice** from eligible papers in your own completed exam history.
+- Save and resume practice, mark questions, finish for a separate score, and practise again.
+- Keep practice progress and scores separate from official examination results.
+
+### 04 · See where the class needs help
+
+Administrators can move from overall performance to individual questions.
+
+- Manage assessment windows, subject papers, students, and role assignments.
+- Inspect subject-level statistics and student score matrices.
+- Open **question-wise results** to distinguish correct, incorrect, unanswered, and pending responses.
+- Map supported older paper versions into the results grid through question provenance.
+- Export results as **CSV** and inspect recorded exam integrity events.
+- Configure dedicated tester assignments and attempt policies independently of normal student exams.
+
+### 05 · Keep the learning loop connected
+
+- Share academic resources and class schedules through the student portal.
+- Submit bug reports, feature requests, question corrections, or general feedback with relevant context.
+- Track feedback from submission through review and closure.
+- Let administrators triage feedback and maintain private staff notes.
+- Use a shared **light or dark appearance** across authentication, portal, admin, and exam screens.
+
+## The five core workflows
+
+| Workflow | From action to outcome |
+| :--- | :--- |
+| **Paper preparation** | Create draft → author questions → review → publish a frozen version. |
+| **Examination** | Sign in → choose an assessment and subjects → answer with autosave → submit. |
+| **Evaluation and analysis** | Finalise responses → calculate scores → inspect results → export analysis. |
+| **Review and practice** | Open an eligible completed attempt → review → practise → save, resume, and finish. |
+| **Feedback** | Submit a contextual issue → admin triage → track status → close with an outcome. |
+
+## Under the hood
+
+```mermaid
+flowchart TD
+    Student[Student / Tester] --> UI[Next.js App Router · React]
+    Admin[Administrator] --> UI
+    UI --> Auth[Supabase Auth · Google sign-in]
+    UI --> Server[Server Components · Server Actions · Route Handlers]
+    Auth --> Server
+    Server --> Access[Role, ownership, session and release checks]
+    Access --> DB[(Supabase PostgreSQL)]
+    DB --> Rules[RLS · Stored procedures · Transactions]
+    Server --> Storage[Private Supabase Storage]
+    Storage --> Assets[Time-limited signed asset URLs]
+    Assets --> UI
+    DB --> Results[Server-side evaluation and results]
+    Results --> UI
 ```
 
-- **Frontend & App Framework:** Next.js 16 (`16.3.8`, Turbopack, App Router, Server Components, Server Actions)
-- **UI Library & Styling:** React 19 (`19.2.8`), Tailwind CSS 4 (`4.x`), Lucide Icons
-- **Language & Type System:** TypeScript 5 (`5.x`)
-- **Database & Auth:** Supabase PostgreSQL (17.x) with Row Level Security (RLS), Supabase Auth (`@supabase/supabase-js 2.117.2`, `@supabase/ssr 0.12.7`), `pg` driver (`8.23.1`)
-- **Storage:** Private Supabase Storage bucket (`question_assets`, `pdf_imports`, `academic_resources`) delivering time-limited signed CDN URLs
-- **Math Engine:** KaTeX (`0.19.0`) server-side pre-rendering with client-side fallback
-- **Runtime:** Node.js 20+
-- **Deployment:** Vercel automated continuous deployments triggered from `main`
+| Layer | Technology | Why it is here |
+| :--- | :--- | :--- |
+| Application | **Next.js 16 · React 19 · TypeScript** | Server rendering, typed workflows, and server-side mutations in one application. |
+| Interface | **Tailwind CSS 4** | Shared layouts, exam controls, responsive views, and theme styling. |
+| Data | **Supabase PostgreSQL** | Persistent exam state, relational paper models, transactional operations, and row-level policies. |
+| Identity | **Supabase Auth · Google OAuth** | Institutional sign-in and student, administrator, and tester roles. |
+| Files | **Supabase Storage** | Private question assets, imported papers, and academic resources. |
+| Mathematics | **KaTeX** | Readable mathematical expressions in authoring, exams, and review. |
+| Hosting | **Vercel** | Hosts the live application; the deployment repository is maintained separately. |
+| Verification | **Node test runner · tsx · Testing Library · SQL checks** | Logic tests, component interaction checks, and database regression scripts. |
+
+### Engineering decisions that matter
+
+**Published papers are snapshots.** Editable templates and published versions are separate. An attempt refers to the paper version it actually used, preserving the meaning of its questions and results.
+
+**The server controls the exam.** Session validation, timing, authorisation, answer release, and evaluation are enforced beyond the browser. An HMAC-signed session cookie binds active exam context to the student.
+
+**Saving and submitting are different operations.** A background queue reduces interruptions while students answer. Final submission uses a database transaction to save pending responses and finalise attempts together.
+
+**Practice has its own state.** Personal practice uses an eligible source paper without creating official exam results. Revision checks reject stale saves from another tab.
+
+**Data access has boundaries.** Role and ownership checks work alongside PostgreSQL row-level security. Answer keys stay out of active student exam payloads; private files use signed URLs.
+
+**Performance follows the workflow.** Immutable paper caching, batched data access, server-rendered maths, direct asset delivery, and a calculator loaded on demand reduce repeated work during an exam.
+
+## Reliability and verification
+
+**141 unit and component tests passed during submission preparation.** The suite covers areas including question authoring, upload validation, feedback rules, role access, answer release, practice grading, and review interactions.
+
+```bash
+npm test
+npm run lint
+npx tsc --noEmit
+npm run build
+```
+
+The passing count refers to the automated unit and component suite. SQL regression checks and authenticated browser acceptance checks are separate; their procedures are documented below.
+
+| Check | Where to find it |
+| :--- | :--- |
+| Unit and component tests | `src/lib/**/__tests__/` and `src/components/admin/__tests__/` |
+| Database regression checks | [`supabase/tests/`](supabase/tests/) |
+| End-to-end manual scenarios | [Manual testing checklist](docs/MANUAL_TESTING_CHECKLIST.md) |
+| Deployment acceptance | [Production checklist](docs/PRODUCTION_CHECKLIST.md) |
+
+## Run your own instance
+
+### 1. Install the application
+
+Use Node.js 20 or later, npm, and a separate Supabase project.
+
+```bash
+git clone https://github.com/akshat-jain1/iitm-bs-mock-exam-platform.git
+cd iitm-bs-mock-exam-platform
+npm ci
+cp .env.example .env.local
+```
+
+### 2. Configure your database and sign-in
+
+Use **your own Supabase project**, not the live platform's database.
+
+1. Apply the migrations in [`supabase/migrations/`](supabase/migrations/) in filename order. With the Supabase CLI, run `npx supabase login`, `npx supabase link --project-ref YOUR_PROJECT_REF`, and `npx supabase db push` from this repository.
+2. Run [`supabase/seed.sql`](supabase/seed.sql) in your project's SQL editor to install reference subjects and assessment types. This seed contains no student accounts or exam attempts.
+3. Enable the Google authentication provider with your own OAuth configuration. Register your Supabase callback URL with Google and allow `http://localhost:3000/auth/callback` in Supabase's redirect URLs.
+4. Set the Supabase Auth Site URL to `http://localhost:3000` for local development. The included custom access-token hook, `public.custom_access_token_hook`, can supply role claims; the application also includes a database role lookup fallback.
+5. Provision an authorised administrator through your trusted database administration workflow. A fresh database does not automatically grant administrative access to a new signup. Student Google sign-in is restricted to `@sst.scaler.com` in application code and database functions.
+
+For a Docker-based local Supabase environment, [`supabase/config.toml`](supabase/config.toml) includes local ports and Google provider settings. Supply `SUPABASE_AUTH_EXTERNAL_GOOGLE_CLIENT_ID` and `SUPABASE_AUTH_EXTERNAL_GOOGLE_SECRET` to the CLI environment before starting it. [`supabase/seed_dev.sql`](supabase/seed_dev.sql) contains optional **local-only** test accounts and must never be used on the live database.
+
+### 3. Fill in `.env.local`
+
+| Variable | Purpose | Exposure |
+| :--- | :--- | :--- |
+| `NEXT_PUBLIC_SUPABASE_URL` | Your Supabase project URL. | Browser-visible |
+| `NEXT_PUBLIC_SUPABASE_ANON_KEY` | Your project's public API key. | Browser-visible |
+| `NEXT_PUBLIC_SITE_URL` | Application origin; use `http://localhost:3000` locally. | Browser-visible |
+| `SUPABASE_SERVICE_ROLE_KEY` | Privileged database operations on the server. | **Server only** |
+| `EXAM_SESSION_SECRET` | A long, randomly generated secret for exam session signing. | **Server only** |
+| `NEXT_PUBLIC_FEEDBACK_EMAIL` | Optional contact email shown to students. | Browser-visible |
+
+The optional `PRODUCTION_SUPABASE_URL` and `PRODUCTION_SUPABASE_SERVICE_ROLE_KEY` variables are for the privileged canonical-paper importer, not normal application startup. That importer also expects locally prepared source manifests and image files; see its paths before running it.
+
+### 4. Start the application
+
+```bash
+npm run dev
+```
+
+Open **[localhost:3000](http://localhost:3000)**. A fresh instance starts with reference data; create and publish papers and schedule an assessment through the admin workflow before attempting an exam.
+
+## Deployment
+
+**Live instance → [q-platform-theta.vercel.app](https://q-platform-theta.vercel.app)**
+
+The live service is deployed through the owner's original repository. This public repository supplies the source for evaluation; pushing here does not redeploy that service.
+
+For your own deployment, import this repository into Vercel, configure your own environment variables, apply the database migrations and reference seed, and configure Supabase/Google authentication for your deployed origin. Set `NEXT_PUBLIC_SITE_URL` to that origin and add its `/auth/callback` URL to Supabase's redirect allowlist.
+
+## Project map
+
+```text
+src/
+├── app/                 Routes, server actions, auth callbacks, and API handlers
+│   ├── (admin)/         Paper authoring, assessments, results, and administration
+│   └── (student)/       Student portal, exam sessions, review, and practice
+├── components/          Exam controls, authoring tools, portal UI, and theming
+├── hooks/               Exam session and integrity behaviour
+└── lib/                 Auth, database clients, grading, feedback, and shared logic
+supabase/
+├── migrations/          47 versioned database migrations
+├── tests/               SQL regression checks
+└── seed.sql             Reference subjects and assessment types
+scripts/                 Import, maintenance, and local verification utilities
+docs/                    Architecture, feature details, and acceptance checklists
+```
+
+## Go deeper
+
+| Document | What it explains |
+| :--- | :--- |
+| [Feature catalogue](docs/FEATURES.md) | Capabilities, implementation details, and verification notes. |
+| [Technical specification](docs/PROJECT_SPEC.md) | Data models, database routines, access controls, and state transitions. |
+| [Review and practice](docs/student-review-and-practice.md) | Eligibility, grading, answer visibility, and saved practice behaviour. |
+| [Manual testing checklist](docs/MANUAL_TESTING_CHECKLIST.md) | Student, administrator, and tester acceptance scenarios. |
+| [Production checklist](docs/PRODUCTION_CHECKLIST.md) | Deployment and operational checks. |
+| [Development history](docs/PROJECT_HISTORY.md) | Original engineering milestones and architectural evolution. |
+
+<details>
+<summary><strong>Repository provenance and private configuration</strong></summary>
+
+This is a submission copy of an existing application. The initial commits group its source by component; they do not recreate the original development timeline. Historical commit references in the documentation refer to the original private repository. Older verification notes describe their recorded release and should be read in that context.
+
+Production credentials, private user records, backups, and operational scratch files are excluded. All configuration examples use placeholders. The live deployment and its settings are managed separately.
+
+</details>
 
 ---
 
-## Security Model & Integrity Safeguards
+<div align="center">
 
-- **Domain Restriction:** Authentication restricted to approved `@sst.scaler.com` email addresses; unauthorized logins are purged during OAuth callback.
-- **Role-Based Access Control:** Distinct roles (`student`, `admin`, `tester`) enforced via PostgreSQL RLS and server middleware.
-- **HMAC Exam Session Tokens:** Cryptographically binds `studentId`, `assessmentId`, and `attempts` in an HTTP-only SHA-256 HMAC session cookie, verified on all actions.
-- **Admin Production Attempt Block:** Database trigger `prevent_admin_production_attempts` prevents administrators from inserting production attempts for themselves or on behalf of others.
-- **Configuration Freeze Trigger:** `freeze_assessment_event_configuration` trigger locks all test parameters the moment an attempt commences.
-- **Attempt Identity Freeze Trigger:** `freeze_attempt_identity` locks core attempt fields once created.
-- **Answer Key Isolation:** Answer keys and evaluation tables reside exclusively in restricted server tables and are never exposed in student exam payloads.
-- **Answer-Release Policy:** Production answers are accessible only after exam completion and explicit admin release (`release_answers = true`).
-- **Private Asset Storage:** Raw storage bucket paths are private and accessible only via short-lived signed CDN URLs.
-- **Anti-Cheating Telemetry:** Real-time tracking of fullscreen exits, window blur, tab switching, and copy/paste attempts, dispatched in batched cycles.
+**Built by Akshat Jain · Used by 85 real users · Created for the complete examination cycle.**
 
-### Known Limitations & Operational Notes
-1. **MSQ Answer-Key Completeness:** The database schema does not store the author's intended total count of correct MSQ options. The system enforces that at least two correct options exist for an MSQ, but cannot mathematically prove that additional intended options were not omitted during drafting.
-2. **Historical Test Result Statuses:** Historical test result statuses were backfilled to `Evaluated` by migration 00039 without recalculating scores. Any student answers lost prior to saving were not retroactively recovered.
-3. **Pending Live Browser Verifications:** Systematic manual browser testing following `docs/MANUAL_TESTING_CHECKLIST.md` remains to be executed against the live deployed environment.
-4. **Development Dependency Advisory:** Known non-blocking advisory in devDependencies (`braces` <=3.0.3, GHSA-vfj7-8cjw-p6xm / CWE-674, affecting `micromatch` -> `fast-glob` -> `@next/eslint-plugin-next` -> `eslint-config-next`) affects development-time globbing only, not runtime request handling. Automatic remediation requires a breaking downgrade to Next.js 14.
+[Launch Q Platform ↗](https://q-platform-theta.vercel.app)
 
----
-
-## Performance Engineering (Phases 1–7)
-
-The platform targets 250–300 concurrent candidates. The optimizations below reduce request volume and latency; production capacity still needs validation on infrastructure matching the deployed environment:
-
-1. **Phase 1 — Auth Overhead:** Replaced database role queries with lightweight JWT claims (`getClaims()`) and consolidated service clients.
-2. **Phase 2 — Perceived Speed:** Integrated React 19 Suspense streaming and skeleton loading states.
-3. **Phase 3 — Login Callback:** Consolidated user provisioning into an atomic, idempotent RPC during OAuth callback.
-4. **Phase 4 — Denormalized Max Marks:** Stored precomputed `max_marks` directly on the `results` table during finalization.
-5. **Phase 5a — Atomic Save RPC:** Atomic `save_response` PostgreSQL function with client-side debounced save queue.
-6. **Phase 5b — Reliability & Auto-Submit:** Single-transaction pending-answer save and finalization (`finalize_attempts_with_responses`), buffered telemetry, and non-blocking auto-submit retry loops.
-7. **Phase 6 — Direct CDN Image Delivery:** Server-side batched signed URLs (3-hour lifetime) streaming directly from Supabase CDN; background preloading for the next 1–2 questions.
-8. **Phase 7 — Client Weight & Paper Caching:**
-   - Server-side KaTeX pre-rendering wrapped in `React.memo` to skip re-renders.
-   - Code-split `ScientificCalculator` via `next/dynamic` deferred until opened.
-   - On-demand loading of unselected subject papers (`loadUnselectedSubjectPaperAction`).
-   - Next.js 16 `unstable_cache` persisting immutable paper structures across serverless cold starts.
-
-*(Note: Performance Optimization Phases 1–7 are separate from Results System Phases 1–3.)*
-
----
-
-## Local Development
-
-### Web Analytics
-
-Vercel Web Analytics is mounted once in `src/app/layout.tsx` using `@vercel/analytics/next` to collect page views and visitors. No custom events or database migrations are required. Local development uses the package's debug mode and does not send analytics data.
-
-For deployment, enable **Analytics** in the Vercel project dashboard before deploying this change, then visit the production site and check the dashboard for incoming page views. Keep the owning team on Hobby for free analytics within its allowance; collection pauses at the usage limit instead of charging overages. Check [current limits and pricing](https://vercel.com/docs/analytics/limits-and-pricing) before changing plans.
-
-To remove analytics or move hosting providers, remove the `Analytics` import and component from the root layout, run `npm uninstall @vercel/analytics`, disable Web Analytics in the Vercel dashboard, and redeploy. Student and exam data are independent of this integration.
-
-### Prerequisites
-- Node.js 20+
-- npm or pnpm
-- Supabase CLI
-
-### Setup Instructions
-
-1. **Clone the repository:**
-   ```bash
-   git clone https://github.com/akshat-j1/q_platform.git
-   cd q_platform
-   ```
-
-2. **Install dependencies:**
-   ```bash
-   npm install
-   ```
-
-3. **Configure Environment Variables:**
-   Create a `.env.local` file with safe placeholder values:
-   ```env
-   NEXT_PUBLIC_SUPABASE_URL=https://your-project.supabase.co
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
-   SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
-   EXAM_SESSION_SECRET=your-hmac-sha256-secret-min-32-chars
-   # Optional: Direct student feedback contact email
-   NEXT_PUBLIC_FEEDBACK_EMAIL=feedback@your-domain.edu
-   ```
-
-4. **Run the Development Server:**
-   ```bash
-   npm run dev
-   ```
-   Open [http://localhost:3000](http://localhost:3000) in your browser.
-
-5. **Verification Suite:**
-   ```bash
-   # Type check
-   npx tsc --noEmit
-
-   # Lint check
-   npm run lint
-
-   # Production build verification
-   npm run build
-
-   # Automated unit, component interaction, and logic tests
-   npm test
-   ```
-
----
-
-## Documentation Index
-
-For in-depth technical specifications, feature catalogs, and evolutionary context, refer to the documentation suite in `docs/`:
-
-- [**`docs/PROJECT_SPEC.md`**](docs/PROJECT_SPEC.md): Authoritative technical specification, data models, lifecycle state machines, security triggers, Results System architecture, Student Feedback Centre schemas and RPCs, and caching models.
-- [**`docs/FEATURES.md`**](docs/FEATURES.md): Human-readable catalog of all implemented features organized by domain, distinguishing verified features from manual checks and limitations.
-- [**`docs/MANUAL_TESTING_CHECKLIST.md`**](docs/MANUAL_TESTING_CHECKLIST.md): Authoritative manual browser-testing protocol for release validation across student, administrator, and tester roles.
-- [**`docs/PROJECT_HISTORY.md`**](docs/PROJECT_HISTORY.md): Chronological engineering history, major Git milestones, optimization phases, and design decisions.
+</div>

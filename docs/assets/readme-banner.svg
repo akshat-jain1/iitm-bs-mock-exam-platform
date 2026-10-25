@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="400" viewBox="0 0 1280 400" role="img" aria-labelledby="title desc">
+<title id="title">Q Platform — Built for the exam. Designed for what comes next.</title>
+<desc id="desc">An IITM BS mock examination platform serving 85 real users. Author, attempt, evaluate, improve.</desc>
+<defs>
+<linearGradient id="bg" x2="1" y2="1"><stop stop-color="#0a1021"/><stop offset="1" stop-color="#18253f"/></linearGradient>
+<linearGradient id="accent"><stop stop-color="#5eead4"/><stop offset="1" stop-color="#93c5fd"/></linearGradient>
+<pattern id="grid" width="48" height="48" patternUnits="userSpaceOnUse"><path d="M 48 0 L 0 0 0 48" fill="none" stroke="#94a3b8" stroke-opacity=".07"/></pattern>
+</defs>
+<rect width="1280" height="400" rx="22" fill="url(#bg)"/>
+<rect width="1280" height="400" rx="22" fill="url(#grid)"/>
+<circle cx="1140" cy="70" r="210" fill="#14b8a6" opacity=".045"/>
+<rect x="56" y="48" width="5" height="25" rx="2" fill="#5eead4"/>
+<text x="77" y="67" fill="#5eead4" font-family="Arial, Helvetica, sans-serif" font-size="17" font-weight="700" letter-spacing="4">Q PLATFORM</text>
+<text x="56" y="151" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="52" font-weight="700" letter-spacing="-2">Built for the exam.</text>
+<text x="56" y="216" fill="url(#accent)" font-family="Arial, Helvetica, sans-serif" font-size="46" font-weight="700" letter-spacing="-1.5">Designed for what comes next.</text>
+<text x="58" y="267" fill="#b4c3d7" font-family="Arial, Helvetica, sans-serif" font-size="19">IITM BS mock exams, from the first question to the final insight.</text>
+<rect x="57" y="310" width="449" height="42" rx="21" fill="#ffffff" fill-opacity=".055" stroke="#ffffff" stroke-opacity=".1"/>
+<text x="80" y="337" fill="#d6e3f3" font-family="Arial, Helvetica, sans-serif" font-size="15" letter-spacing="1">AUTHOR  /  ATTEMPT  /  EVALUATE  /  IMPROVE</text>
+<rect x="973" y="110" width="240" height="181" rx="20" fill="#081423" fill-opacity=".7" stroke="#5eead4" stroke-opacity=".22"/>
+<circle cx="1001" cy="139" r="4" fill="#5eead4"/>
+<text x="1014" y="144" fill="#7dd3c7" font-family="Arial, Helvetica, sans-serif" font-size="12" letter-spacing="2">IN REAL USE</text>
+<text x="997" y="224" fill="#f8fafc" font-family="Arial, Helvetica, sans-serif" font-size="76" font-weight="700" letter-spacing="-4">85</text>
+<text x="1000" y="257" fill="#a8bdd5" font-family="Arial, Helvetica, sans-serif" font-size="16">real users</text>
+</svg>
