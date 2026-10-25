@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="100%" height="100%">
+  <rect width="100%" height="100%" fill="#ffffff" />
+  <!-- Grid -->
+  <path d="M 50 50 L 350 50 M 50 100 L 350 100 M 50 150 L 350 150 M 50 200 L 350 200 M 50 250 L 350 250" stroke="#e2e8f0" stroke-width="1" />
+  <path d="M 100 50 L 100 250 M 150 50 L 150 250 M 200 50 L 200 250 M 250 50 L 250 250 M 300 50 L 300 250" stroke="#e2e8f0" stroke-width="1" />
+  
+  <!-- Axes -->
+  <line x1="50" y1="250" x2="350" y2="250" stroke="#334155" stroke-width="2" />
+  <line x1="50" y1="50" x2="50" y2="250" stroke="#334155" stroke-width="2" />
+  
+  <!-- Bell Curve Path -->
+  <path d="M 50 248 C 100 248, 150 248, 180 150 C 200 50, 200 50, 220 150 C 250 248, 300 248, 350 248" fill="none" stroke="#2563eb" stroke-width="3" />
+  
+  <!-- Labels -->
+  <text x="200" y="275" font-family="sans-serif" font-size="14" fill="#475569" text-anchor="middle">Data Value</text>
+  <text x="25" y="150" font-family="sans-serif" font-size="14" fill="#475569" transform="rotate(-90 25 150)" text-anchor="middle">Frequency</text>
+</svg>
