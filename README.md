@@ -6,6 +6,12 @@
 
 Author better papers. Take focused exams. Turn results into practice.
 
+### 🔗 Quick Links
+
+- 🌐 **Live Application:** https://q-platform-theta.vercel.app
+- 🎥 **Demo Video:** https://drive.google.com/file/d/1Y3pUSnUC_pXBMQNIZ-D-YwLCbO2C-Yw8/view?usp=sharing
+- 💻 **Source Code:** https://github.com/akshat-jain1/iitm-bs-mock-exam-platform
+
 **[Live application](https://q-platform-theta.vercel.app)** · **[Users](https://q-platform-theta.vercel.app)** · **[Tests](https://q-platform-theta.vercel.app)** · **[Demo video](https://drive.google.com/file/d/1Y3pUSnUC_pXBMQNIZ-D-YwLCbO2C-Yw8/view?usp=sharing)**
 
 [Open the platform](https://q-platform-theta.vercel.app) · [Watch the demo](https://drive.google.com/file/d/1Y3pUSnUC_pXBMQNIZ-D-YwLCbO2C-Yw8/view?usp=sharing) · [Explore the features](#what-you-can-do) · [Understand the architecture](#under-the-hood) · [Run your own instance](#run-your-own-instance)
